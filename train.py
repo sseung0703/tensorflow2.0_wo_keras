@@ -12,8 +12,10 @@ from nets import ResNet
 train_dir   = '/home/dmsl/Documents/tf2.0/test'
 
 model_name   = 'vgg16'
-dataset = sio.loadmat('/home/dmsl/Documents/data/tf/cifar100_natural.mat')
+dataset = sio.loadmat('/home/dmsl/Documents/data/tf/cifar10_natural.mat')
 dataset_len, *image_size = dataset['train_image'].shape
+num_labels = np.max(dataset['train_label'])+1
+
 Optimizer = 'sgd' # 'adam' or 'sgd'
 Learning_rate =1e-1
 
@@ -26,8 +28,8 @@ should_log          = 80
 save_summaries_secs = 60
 
 
-def MODEL(model_name, weight_decay, image, label, droprate, is_training):
-    end_points = ResNet.model(image, trainable = True, is_training = is_training)
+def MODEL(model_name, weight_decay, image, label, trainable, is_training):
+    end_points = ResNet.model(image, trainable = trainable, is_training = is_training)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(label,end_points['Logits']))
     accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(label, 1), tf.argmax(end_points['Logits'], 1)), tf.float32))
@@ -53,7 +55,7 @@ with tf.Graph().as_default() as graph:
     global_step = tf.keras.backend.placeholder(dtype = tf.int32)
     is_training = tf.keras.backend.placeholder(dtype = tf.uint8)
 
-    train_label_onhot = tf.one_hot(train_label, 100, on_value=1.0)
+    train_label_onhot = tf.one_hot(train_label, num_labels, on_value=1.0)
  
     decay_steps = dataset_len // batch_size
     epoch = tf.floor_div(tf.cast(global_step, tf.float32), decay_steps)
@@ -63,7 +65,7 @@ with tf.Graph().as_default() as graph:
     
     ## load Net
     train_end_points, total_loss, train_accuracy = MODEL(model_name, weight_decay, train_image,
-                                                         train_label_onhot, is_training, is_training)
+                                                         train_label_onhot, True, is_training)
 
     #get variables and make optimizer 
     variables  = graph.get_collection('trainable_variables')
