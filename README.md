@@ -5,12 +5,3 @@
 ## Requirments
 - Tensorflow 2.0
 - Scipy
-
-## Note that
-- this code is on working, so it can have some bug or inefficient things
-
-
-
-
-
-
